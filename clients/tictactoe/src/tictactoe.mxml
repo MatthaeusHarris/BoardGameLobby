@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" currentState="Start" width="800" height="600">
+	<mx:Script>
+		<![CDATA[
+			import com.uberduck.orpheus.gameclient.*;
+			
+			public var gameClient:TicTacToeClient;
+			public var boardButtons:Array;
+			public var board:Array;
+			
+			public function start():void {
+				gameClient = new TicTacToeClient(server.text,int(port.text),debug);
+				gameClient.addEventListener(WaitEvent.WAIT,waitHandler);
+				gameClient.addEventListener(NotifyEvent.NOTIFY,notifyHandler);
+				
+			}
+			
+			public function waitHandler(event:WaitEvent):void {
+				gameClient.msg("Waiting for " + event.waitVar);
+				switch(event.waitVar) {
+					case "name":
+						currentState = "Select Name";
+						status.text = "Waiting for your name...";
+						break;
+					case "color":
+						currentState = "Select Side";
+						status.text = "Waiting for your side...";
+						break;
+					case "ready":
+						gameClient.ready();
+						currentState = "Waiting for Opponent";
+						status.text = "Waiting for your opponent...";
+						break;
+					case "move":
+						status.text = "It is your move.";
+						break;
+					case "opponent":
+						status.text = "It is your opponent's move.";
+						break;
+				}
+			}
+			
+			public function notifyHandler(event:NotifyEvent):void {
+				gameClient.msg("Notification received: " + event.notifyVar);
+				switch (event.notifyVar) {
+					case "gamestart":
+						gameClient.msg("Gamestart detected!");
+						currentState = "Play Game";
+						boardButtons = [Position_0,Position_1,Position_2,Position_3,Position_4,Position_5,Position_6,Position_7,Position_8];
+						break;
+					case "playerinfo":
+						OPlayer.text = gameClient.getPlayer('O');
+						XPlayer.text = gameClient.getPlayer('X');
+						break;
+					case "disconnected":
+						currentState = "Start";
+						status.text = "Server connection lost.";
+						resetBoard();
+						break;
+					case "abort":
+						currentState = "Waiting for Opponent";
+						status.text = "Your opponent fled in terror.";
+						resetBoard();
+						break;
+					case "boardinfo":
+						board = gameClient.getBoard();
+						for (var i:int = 0; i <= 8; i++) {
+							if (board[i]) {
+								boardButtons[i].label = board[i];
+							}
+						}
+						break;
+					case "win":
+						trace("you won.");
+						currentState = "Win";
+						break;
+					case "tie":
+						trace("tie.");
+						currentState = "Tie";
+						break;
+					case "loss":
+						trace("you lost.");
+						currentState = "Loss";
+						break;
+				}
+			}
+			
+			public function resetBoard():void {
+				for (var i:int = 0; i <= 8; i++) {
+					boardButtons[i].label = "";
+				}
+			}
+			
+			public function playAgain():void {
+				resetBoard();
+				gameClient.ready();
+			}
+			
+			public function scrollMessages():void {
+				trace("Scrolling");
+				debug.verticalScrollPosition = debug.maxVerticalScrollPosition;
+			}
+		]]>
+	</mx:Script>
+	<mx:states>
+		<mx:State name="Select Name">
+			<mx:AddChild position="lastChild">
+				<mx:TextInput x="316.5" y="52" id="userName" editable="true" enabled="true"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Button x="484.5" y="52" label="Ok" click="gameClient.setName(userName.text)"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Label x="273.5" y="54" text="Name"/>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="Select Side">
+			<mx:AddChild position="lastChild">
+				<mx:Button x="335.5" y="78" label="X" click="gameClient.setSide('X')"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Button x="424.5" y="78" label="O" click="gameClient.setSide('O')"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Label x="357.5" y="52" text="Choose a side"/>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="Play Game">
+			<mx:AddChild position="lastChild">
+				<mx:Grid x="200" y="52" width="400" height="400" id="grid1">
+					<mx:GridRow width="100%" height="100%">
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(0)" id="Position_0" />
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(1)" id="Position_1"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(2)" id="Position_2"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="100%">
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(3)" id="Position_3"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(4)" id="Position_4"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(5)" id="Position_5"/>
+						</mx:GridItem>
+					</mx:GridRow>
+					<mx:GridRow width="100%" height="100%">
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(6)" id="Position_6"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(7)" id="Position_7"/>
+						</mx:GridItem>
+						<mx:GridItem width="100%" height="100%">
+							<mx:Button width="100%" height="100%" fontSize="36" click="gameClient.move(8)" id="Position_8"/>
+						</mx:GridItem>
+					</mx:GridRow>
+				</mx:Grid>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Text x="74" y="52" text="X" fontSize="36"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Text x="685" y="52" text="O" fontSize="36"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Text x="608" y="110" text="Text" width="182" textAlign="center" fontSize="18" id="OPlayer"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Text x="0" y="110" text="Text" width="182" textAlign="center" fontSize="18" id="XPlayer"/>
+			</mx:AddChild>
+			
+		</mx:State>
+		<mx:State name="Start">
+			<mx:AddChild position="lastChild">
+				<mx:Button x="416" y="80" label="Go" click="start()" width="71"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Label x="274" y="54" text="Server:"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:Label x="287" y="82" text="Port:"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:TextInput x="327" y="52" id="server" text="gilgamesh.uberduck.com"/>
+			</mx:AddChild>
+			<mx:AddChild position="lastChild">
+				<mx:TextInput x="327" y="80" width="81" id="port" text="9050"/>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="Waiting for Opponent">
+			<mx:AddChild position="lastChild">
+				<mx:Label x="318.5" y="52" text="Waiting for your opponent..." textAlign="left"/>
+			</mx:AddChild>
+		</mx:State>
+		<mx:State name="Game Outcome" basedOn="Play Game">
+			<mx:AddChild position="lastChild">
+				<mx:Text x="10" y="192" text="Text" width="780" textAlign="center" fontSize="18" id="text2"/>
+			</mx:AddChild>
+			<mx:SetProperty target="{status}" name="text" value="Game over."/>
+			<mx:AddChild position="lastChild">
+				<mx:Button x="357.5" y="62" label="Play again" click="playAgain()"/>
+			</mx:AddChild>
+			<mx:SetProperty target="{grid1}" name="alpha" value="0.26"/>
+		</mx:State>
+		<mx:State name="Win" basedOn="Game Outcome">
+			<mx:SetProperty target="{text2}" name="text" value="You won!"/>
+		</mx:State>
+		<mx:State name="Tie" basedOn="Game Outcome">
+			<mx:SetProperty target="{text2}" name="text" value="It was a tie."/>
+		</mx:State>
+		<mx:State name="Loss" basedOn="Game Outcome">
+			<mx:SetProperty target="{text2}" name="text" value="You lost."/>
+		</mx:State>
+	</mx:states>
+	<mx:Text x="0" y="10" text="Tic Tac Toe" width="800" height="34" textAlign="center" fontSize="24" id="text1"/>
+	<mx:TextArea x="10" y="490" width="780" height="100" id="debug" wordWrap="true" editable="false" dataChange="scrollMessages()">
+		<mx:change>scrollMessages()</mx:change>
+	</mx:TextArea>
+	<mx:Text x="10" y="454" width="780" id="status" color="#FFFFFF" textAlign="center" fontSize="18" text="Waiting to connect..."/>
+	
+</mx:Application>

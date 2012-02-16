@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="240" height="400">
+	<mx:Script>
+		<![CDATA[
+			trace("GameSummary object created.");
+		]]>
+	</mx:Script>
+	<mx:VBox x="10" y="10" width="220" height="380" horizontalAlign="center" borderStyle="inset" cornerRadius="3">
+		<mx:Label text="{data.name}" width="100%" fontWeight="bold" fontSize="12" id="title" textAlign="center"/>
+		<mx:Image width="200" height="200" id="thumbnail" source="{data.thumbnail}"/>
+		<mx:Text text="Players: {data.players}" id="players"/>
+		<mx:TextArea height="105" id="description" text="{data.description}" wordWrap="true" editable="false" borderStyle="none" backgroundAlpha="0.0" width="202"/>
+	</mx:VBox>
+</mx:Canvas>

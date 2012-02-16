@@ -1,6 +1,6 @@
 <?php
 require_once("lobbyEngine.php");
-$debug = false;
+$debug = true;
 debug("####################################################################################");
 debug("#####                                                                          #####");
 debug("#####                          testDaemon.php started                          #####");

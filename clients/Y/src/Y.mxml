@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="998" height="667" creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import com.uberduck.game.y.YNetEngine;
+			import mx.controls.Image;
+			import mx.core.DragSource;
+			import mx.managers.DragManager;
+			import mx.events.*;
+			import mx.core.BitmapAsset;
+			import mx.controls.Alert;
+			
+			private var xoffset:Number;
+			private var yoffset:Number;
+			
+			private var boardPieces:Array = new Array();
+			
+			private var engine:YNetEngine;
+			
+			[Bindable]
+			private var userList:ArrayCollection = new ArrayCollection();
+			
+			private function init():void {
+				Alert.show(Application.application.parameters.port,"Port");
+				engine = new YNetEngine(Application.application.parameters.host, Application.application.parameters.port, Application.application.parameters.username, userList);
+			}
+			
+			private function dragIt(initiator:Image, dsData:String, event:MouseEvent, format:String):void {
+				var ds:DragSource = new DragSource();
+				ds.addData(dsData, format);
+				DragManager.doDrag(initiator, ds, event);
+			}
+			
+			private function mouseDownHandler(event:MouseEvent):void {
+				xoffset = event.localX;
+				yoffset = event.localY;
+				var initiator:Image = event.currentTarget as Image;
+				trace(initiator.source);
+				var proxyBox:Image = new Image();
+				proxyBox.source = initiator.source;
+				proxyBox.width = initiator.width;
+				proxyBox.height = initiator.height;
+				var dragSource:DragSource = new DragSource();
+				dragSource.addData(initiator, initiator.id);
+				DragManager.doDrag(initiator, dragSource, event, proxyBox, 0, 0, 1);
+			}
+			
+			private function dragEnterHandler(event:DragEvent):void {
+				trace("dragEnterHandler() fired.");
+				if (event.dragSource.hasFormat("blackPiece") || event.dragSource.hasFormat("whitePiece")) {
+					DragManager.acceptDragDrop( Canvas(event.currentTarget));
+				}
+			}
+			
+			private function dropHandler(event:DragEvent):void {
+				trace("dropHandler fired.");
+				var initiator:Image = event.dragInitiator as Image;
+				var target:Canvas = event.target as Canvas;
+				var tmpImage:Image = new Image();
+				tmpImage.source = initiator.source;
+				tmpImage.width = initiator.width;
+				tmpImage.height = initiator.height;
+				tmpImage.x = target.x;
+				tmpImage.y = target.y;
+				tmpImage.visible = true;
+				Application.application.addChild(tmpImage);
+				boardPieces.push(tmpImage);
+				trace("Dropped on target " + target.data);
+			}
+		]]>
+	</mx:Script>
+	<mx:Image x="0" y="0">
+		<mx:source>images/board.png</mx:source>
+	</mx:Image>
+	
+	<mx:Image id="blackPiece" x="813" y="17" source="images/black_piece.png" mouseDown="mouseDownHandler(event)"/>
+	<mx:Image id="whitePiece" x="17" y="17" source="images/white_piece.png" mouseDown="mouseDownHandler(event)"/>
+
+	<mx:Canvas data="0" x="483" y="95" id="position_0" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="1" x="538" y="130" id="position_1" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="2" x="587" y="175" id="position_2" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="3" x="631" y="226" id="position_3" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="4" x="667" y="279" id="position_4" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="5" x="697" y="340" id="position_5" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="6" x="719" y="403" id="position_6" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="7" x="730" y="468" id="position_7" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="8" x="734" y="530" id="position_8" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="9" x="676" y="561" id="position_9" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="10" x="611" y="581" id="position_10" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="11" x="545" y="594" id="position_11" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="12" x="482" y="598" id="position_12" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="13" x="416" y="595" id="position_13" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="14" x="349" y="581" id="position_14" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="15" x="289" y="560" id="position_15" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="16" x="230" y="531" id="position_16" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	
+	<mx:Canvas data="17" x="234" y="466" id="position_17" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="18" x="246" y="402" id="position_18" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="19" x="267" y="339" id="position_19" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="20" x="297" y="278" id="position_20" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="21" x="332" y="222" id="position_21" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="22" x="375" y="174" id="position_22" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="23" x="427" y="129" id="position_23" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="24" x="481" y="141" id="position_24" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="25" x="533" y="176" id="position_25" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="26" x="581" y="219" id="position_26" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="27" x="620" y="269" id="position_27" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="28" x="653" y="322" id="position_28" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="29" x="675" y="386" id="position_29" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="30" x="689" y="444" id="position_30" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="31" x="694" y="507" id="position_31" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="32" x="637" y="534" id="position_32" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="33" x="576" y="554" id="position_33" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	
+	<mx:Canvas data="34" x="512" y="563" id="position_34" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="35" x="450" y="564" id="position_35" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="36" x="386" y="553" id="position_36" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="37" x="327" y="535" id="position_37" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="38" x="271" y="507" id="position_38" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="39" x="275" y="444" id="position_39" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="40" x="288" y="385" id="position_40" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="41" x="311" y="324" id="position_41" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="42" x="343" y="268" id="position_42" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="43" x="382" y="220" id="position_43" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="44" x="429" y="177" id="position_44" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="45" x="481" y="191" id="position_45" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="46" x="529" y="223" id="position_46" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="47" x="572" y="264" id="position_47" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="48" x="606" y="314" id="position_48" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="49" x="634" y="366" id="position_49" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="50" x="646" y="424" id="position_50" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	
+	<mx:Canvas data="51" x="649" y="483" id="position_51" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="52" x="597" y="507" id="position_52" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="53" x="542" y="522" id="position_53" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="54" x="482" y="527" id="position_54" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="55" x="422" y="521" id="position_55" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="56" x="366" y="507" id="position_56" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="57" x="313" y="482" id="position_57" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="58" x="318" y="425" id="position_58" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="59" x="332" y="367" id="position_59" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="60" x="357" y="314" id="position_60" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="61" x="391" y="266" id="position_61" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="62" x="432" y="225" id="position_62" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="63" x="480" y="238" id="position_63" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="64" x="523" y="270" id="position_64" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="65" x="559" y="309" id="position_65" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="66" x="587" y="355" id="position_66" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="67" x="606" y="407" id="position_67" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	
+	<mx:Canvas data="68" x="607" y="458" id="position_68" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="69" x="559" y="478" id="position_69" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="70" x="510" y="488" id="position_70" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="71" x="458" y="489" id="position_71" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="72" x="405" y="481" id="position_72" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="73" x="357" y="457" id="position_73" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="74" x="361" y="407" id="position_74" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="75" x="377" y="355" id="position_75" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="76" x="403" y="310" id="position_76" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="77" x="440" y="270" id="position_77" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="78" x="481" y="286" id="position_78" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="79" x="511" y="316" id="position_79" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="80" x="533" y="351" id="position_80" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="81" x="552" y="392" id="position_81" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="82" x="567" y="433" id="position_82" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="83" x="527" y="441" id="position_83" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="84" x="482" y="445" id="position_84" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	
+	<mx:Canvas data="85" x="440" y="443" id="position_85" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="86" x="399" y="433" id="position_86" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="87" x="410" y="396" id="position_87" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="88" x="428" y="354" id="position_88" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="89" x="453" y="320" id="position_89" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="90" x="481" y="357" id="position_90" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="91" x="506" y="398" id="position_91" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+	<mx:Canvas data="92" x="459" y="397" id="position_92" width="30" height="30" dragEnter="dragEnterHandler(event)" dragDrop="dropHandler(event)" backgroundColor="#ffffff" backgroundAlpha="0"/>
+
+</mx:Application>

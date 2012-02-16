@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" creationComplete="init()" width="1000" height="700" xmlns:ns1="com.uberduck.components.*" backgroundGradientAlphas="[1.0, 1.0]" backgroundGradientColors="[#FFFFFF, #FFFFFF]">
+	<mx:Script>
+		<![CDATA[
+			import mx.events.IndexChangedEvent;
+			import mx.events.FlexEvent;
+			import mx.collections.ArrayCollection;
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			
+			import com.uberduck.game.lobby.ChatInterface;
+			import com.uberduck.game.NotifyEvent;
+			import com.uberduck.game.lobby.LobbyInterface;
+			
+			import com.uberduck.game.lobby.GameSummary;
+			
+			import mx.managers.FocusManager;
+//			import flash.external.ExternalInterface;
+						
+			public var chat:LobbyInterface;
+			
+			[Bindable]
+			public var userList:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var gameList:XMLListCollection = new XMLListCollection();
+			
+			[Bindable]
+			public var availableUserList:ArrayCollection = new ArrayCollection();
+			
+			[Bindable]
+			public var gameSWF:String;
+			
+			public function init():void {
+//				ExternalInterface.call('setBrowserFocus');
+				focusManager.setFocus(this.username);
+			}
+			
+			public function connect():void {
+				trace("Connect clicked.");
+				trace(chatWindow);
+				if (username.text && host.text && int(port.text)) {
+					chat = new LobbyInterface(host.text, int(port.text), username.text, userList, availableUserList, gameList);
+					chat.addEventListener(NotifyEvent.NOTIFY,notifyHandler);
+					chat.connect();
+				} else {
+					status.text = "Please fill out the above fields.";
+					if (!username.text) {
+						username.setStyle("borderColor","#ff0000");
+					}
+					if (!host.text) {
+						host.setStyle("borderColor","#ff0000");
+					}
+					if (!int(port.text)) {
+						port.setStyle("borderColor","#ff0000");
+					}
+				}
+			}
+			
+			public function stealFocus(event:FlexEvent):void {
+				focusManager.setFocus(TextInput(event.target));
+			}
+			
+			public function reset():void {
+				
+				loginContainer.enabled = true;
+				tabContainer.selectedChild = loginContainer;
+				Alert.show("Connection to the server was interrupted.","Whups!");
+//				chatContainer.enabled = false;
+//				gameContainer.enabled = false;
+//				currentGameContainer.enabled = false;
+				chat = null;
+				userList = new ArrayCollection();
+				gameList = new XMLListCollection();
+				availableUserList = new ArrayCollection();
+				gameSWF = new String();
+				
+				
+			}
+			
+			public function notifyHandler(event:NotifyEvent):void {
+				trace("Notify received: " + event.notifyVar);
+				switch (event.notifyVar) {
+					case "nameok":
+						tabContainer.selectedChild = chatContainer;
+						chatContainer.enabled = true;
+						gameContainer.enabled = true;
+						loginContainer.enabled = false;
+						break;
+					case "nametaken":
+						username.setStyle("borderColor","#ff0000");
+						status.text = "That username is already connected.";
+						break;
+					case "nameinvalid":
+						username.setStyle("borderColor","#ff0000");
+						status.text = "That username is invalid.";
+						break;
+					case "chat":
+						if (chatWindow) {
+							chatWindow.htmlText += chat.getChatText();
+						}
+						break;
+					case "disconnected":
+						if (chatWindow) {
+							chatWindow.htmlText += '<font color="#ff0000">Disconnected from server.</font><br \>';
+						}
+						reset();
+//						var urlRequest:URLRequest = new URLRequest(Application.application.url);
+//						navigateToURL(urlRequest,"_self");
+						break;
+					case "gamestart":
+						gameSWF = chat.gameSWF + "?host=" + chat.host + "&port=" + chat.gamePort + "&name=" + chat.username + "&gameId=" + chat.gameId;
+						currentGameContainer.enabled = true;
+						tabContainer.selectedChild = currentGameContainer;
+						break;
+				}
+			}
+			
+			public function getInitialChatText():void {
+				chatWindow.htmlText += chat.getChatText();	
+			}
+			
+			public function tabChange(event:IndexChangedEvent):void {
+				trace("tabChange fired.");
+				if (!tabContainer.selectedChild.enabled) {
+					tabContainer.selectedIndex = event.oldIndex;
+					trace("tabChange blocked!");
+				}
+				if (tabContainer.selectedChild.id == "gameContainer" && chat) {
+					chat.requestGameList();
+				}
+			}
+			
+			public function introspect(object:Object):void {
+				var classInfo:XML = describeType(object);
+				
+				trace("Class " + classInfo.@name.toString());
+				
+				for each(var v:XML in classInfo..variable) {
+					trace("Variable " + v.@name + "=" + object[v.@name] + " (" + v.@type + ")");
+				}
+			}
+			
+			public function speak():void {
+				if (chat) {
+					chat.say(chatInput.text);
+					chatInput.text = "";
+				}
+			}
+			
+			public function checkGameSelection():void {
+				if (gameTileList.selectedIndex != -1 && gameName.text != "") {
+					var validNumPlayers:Array = XML(gameTileList.selectedItem).players.split(',');
+					trace(validNumPlayers);
+					if (validNumPlayers.indexOf(gameListPlayers.selectedIndices.length.toString()) > -1) {
+						var foundSelf:Boolean = false;
+						for each (var tempPlayer:String in gameListPlayers.selectedItems) {
+							if (tempPlayer == chat.username) {
+								foundSelf = true;
+								break;
+							}
+						}
+						if (foundSelf) {
+							startGame.enabled = true;
+						} else {
+							trace("Didn't find " + chat.username + " in " + gameListPlayers.selectedItems);
+							startGame.enabled = false;
+						}
+					} else {
+						trace("Wrong number of players selected.");
+						trace(validNumPlayers.indexOf(gameListPlayers.selectedIndices.length.toString()));
+						startGame.enabled = false;
+					}
+				} else {
+					trace("Game not selected or game not named.");
+					startGame.enabled = false;
+				}
+			}
+			
+			public function gameSelect():void {
+				var game:XML = XML(gameTileList.selectedItem);
+				trace(game.name.toString() + " selected.");
+				//Alert.show("This will invite the selected players to join your game and instruct the server to start it.  Once Matt gets the code written, that is.");
+				chat.invitePlayers(gameName.text,gameListPlayers.selectedItems,game.name.toString());
+			}
+			
+			public function gameLoadCompleteHandler():void {
+//				gameLoader.content.test();				
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:TabNavigator id="tabContainer" x="0" y="0" width="100%" height="100%" change="tabChange(event)" selectedIndex="0">
+		<mx:Canvas id="loginContainer" label="Login" width="100%" height="100%">
+			<mx:Label text="Username" x="384" y="12"/>
+			<mx:TextInput id="username" editable="true" enabled="true" x="454" y="10" enter="connect()" creationComplete="stealFocus(event)"/>
+
+			<mx:Label text="Password" x="390" y="42"/>
+			<mx:TextInput displayAsPassword="true" editable="true" enabled="true" id="password" x="454" y="40" enter="connect()"/>
+
+			<mx:Label text="Server" x="406" y="72"/>
+			<mx:TextInput id="host" text="orpheus.dwinneth" editable="true" enabled="true" x="454" y="70" enter="connect()"/>
+
+			<mx:Label text="Port" x="419" y="102"/>
+			<mx:TextInput id="port" text="9050" editable="true" enabled="true" x="454" y="100" enter="connect()"/>
+
+			<mx:Button id="connectButton" label="Connect" click="connect()" x="454" y="130"/>	
+			<mx:Text x="10" y="160" width="978" id="status" textAlign="center"/>
+		</mx:Canvas>
+		<mx:Canvas id="chatContainer" label="Chat" width="100%" height="100%" enabled="false">
+			<mx:VBox x="0" y="26" height="100%" width="100%" borderStyle="none" borderThickness="0">
+				
+				<mx:HBox width="100%" height="100%" id="hbox1">
+					<mx:TextArea valueCommit="chatWindow.verticalScrollPosition = chatWindow.maxVerticalScrollPosition" width="100%" height="100%" id="chatWindow" wordWrap="true" editable="false" enabled="true" creationComplete="getInitialChatText()"/>
+					<mx:List id="users" height="100%" fontFamily="Verdana" width="150" dataProvider="{userList}" enabled="true" allowMultipleSelection="true"></mx:List>
+				</mx:HBox>
+				<mx:HBox width="100%" horizontalAlign="right" id="hbox2">
+					<mx:TextInput width="100%" id="chatInput" enter="speak()" creationComplete="stealFocus(event)"/>
+					<mx:Button label="Send" id="button1" click="speak()"/>
+				</mx:HBox>
+			</mx:VBox>
+			<mx:Label x="0" y="0" text="Chat" width="100%" textAlign="center" fontWeight="bold" fontSize="12" id="label1"/>
+		</mx:Canvas>
+		<mx:Canvas id="gameContainer" label="Games" width="100%" height="100%" enabled="false" verticalScrollPolicy="auto">
+			<mx:TileList itemRenderer="com.uberduck.game.lobby.GameSummary" dataProvider="{gameList}" x="168" y="36" width="820" height="621" borderStyle="solid" borderColor="#0096FF" borderThickness="2" cornerRadius="5" direction="horizontal" id="gameTileList" variableRowHeight="true" rowHeight="400" columnWidth="240" enabled="true" allowMultipleSelection="false" change="checkGameSelection()" verticalScrollPolicy="on"></mx:TileList>
+			<mx:Button x="10" y="8" label="Go!" id="startGame" click="gameSelect()" enabled="false" width="150"/>
+			<mx:Label x="10" y="92" text="Select players:" width="150" textAlign="left"/>
+			<mx:Label x="168" y="10" text="Select a game:"/>
+			<mx:Label x="10" y="36" text="Name the game:"/>
+			<mx:TextInput x="10" y="62" width="150" id="gameName" editable="true" enabled="true" change="checkGameSelection()"/>
+			<ns1:ToggleList selectMultipleOnClick="true" x="10" y="118" width="150" height="539" id="gameListPlayers" fontFamily="Verdana" dataProvider="{availableUserList}" enabled="true" allowMultipleSelection="true" change="checkGameSelection()"/>
+			
+		</mx:Canvas>
+		<mx:Canvas label="Current Game" width="100%" height="100%" enabled="false" id="currentGameContainer">
+			<mx:SWFLoader complete="gameLoadCompleteHandler()" x="0" y="0" width="998" height="667" scaleContent="true" autoLoad="true" id="gameLoader" maintainAspectRatio="true" source="{gameSWF}"/>
+		</mx:Canvas>
+	</mx:TabNavigator>
+	
+</mx:Application>
